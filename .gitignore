@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+.pytest_cache/
+
+# Secrets / config
+.env
+*.key
+ngrok.yml
+
+# Scanner output
+scan_results.json
+*.csv
+
+# Node
+frontend/node_modules/
+node_modules/
+
+# Build output
+static/dist/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
