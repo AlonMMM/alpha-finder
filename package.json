@@ -1,0 +1,10 @@
+{
+  "name": "alpha-finder",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && python app.py",
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd backend && python app.py"
+  }
+}

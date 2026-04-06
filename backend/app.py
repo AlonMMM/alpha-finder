@@ -4,7 +4,7 @@ Alpha Finder — Backend API Server
 Run: python3 app.py  →  http://localhost:5000
 
 Routes:
-  GET  /                → serves index.html
+  GET  /                → serves React build (static/dist/index.html)
   POST /api/run         → start a scan with given parameters
   POST /api/stop        → kill the running scan
   GET  /api/stream      → SSE stream of live log output
@@ -19,12 +19,13 @@ import sys
 import threading
 from pathlib import Path
 
-from flask import Flask, Response, jsonify, render_template, request
-
-app = Flask(__name__)
+from flask import Flask, Response, jsonify, request, send_from_directory
 
 BASE_DIR     = Path(__file__).parent
+STATIC_DIR   = BASE_DIR / "static" / "dist"
 RESULTS_JSON = BASE_DIR / "scan_results.json"
+
+app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="")
 
 scan_state = {
     "running":   False,
@@ -33,11 +34,17 @@ scan_state = {
 }
 
 
-# ── Page ──────────────────────────────────────────────────────────────────────
+# ── SPA catch-all ─────────────────────────────────────────────────────────────
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_spa(path):
+    if path.startswith("api/"):
+        return jsonify({"error": "not found"}), 404
+    target = STATIC_DIR / path
+    if path and target.exists():
+        return send_from_directory(str(STATIC_DIR), path)
+    return send_from_directory(str(STATIC_DIR), "index.html")
 
 
 # ── API: Start scan ───────────────────────────────────────────────────────────
@@ -58,7 +65,6 @@ def run_scan():
     if int(params.get("sample", 0)):
         cmd += ["--sample", str(params["sample"])]
 
-    # Pass market cap override via env var
     env = os.environ.copy()
     env["ALPHA_MIN_CAP"] = str(params.get("min_cap", 500_000_000))
 
@@ -129,5 +135,6 @@ def results():
 # ── Run ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("⚡ Alpha Finder API → http://localhost:5000")
-    app.run(debug=False, port=5000, threaded=True)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"⚡ Alpha Finder API → http://localhost:{port}")
+    app.run(debug=False, port=port, threaded=True)
