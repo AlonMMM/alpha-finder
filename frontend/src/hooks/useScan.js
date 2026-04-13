@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 
-export default function useScan({ onLog, onDone }) {
+export default function useScan({ onLog, onDone, onClearLogs }) {
   const [running,  setRunning]  = useState(false);
   const [status,   setStatus]   = useState('IDLE');
   const [progress, setProgress] = useState({ pct: 0, label: '' });
@@ -19,7 +19,7 @@ export default function useScan({ onLog, onDone }) {
   }, []);
 
   const start = useCallback(async (params) => {
-    setLogs([]);
+    onClearLogs?.();
     setProgress({ pct: 0, label: 'Starting…' });
     setRunning(true);
     setStatus('RUNNING');
@@ -51,7 +51,7 @@ export default function useScan({ onLog, onDone }) {
       setRunning(false);
       setStatus('ERROR');
     });
-  }, [parseProgress, onDone]);
+  }, [parseProgress, onDone, onClearLogs]);
 
   const stop = useCallback(() => {
     fetch('/api/stop', { method: 'POST' });

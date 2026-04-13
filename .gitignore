@@ -1,3 +1,6 @@
+# IB Client Portal Gateway (binary, download separately)
+clientportal/
+
 # Python
 __pycache__/
 *.py[cod]

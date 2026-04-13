@@ -2,8 +2,12 @@ services:
   - type: web
     name: alpha-finder
     runtime: python
-    buildCommand: "pip install -r backend/requirements.txt && cd frontend && npm install && npm run build"
-    startCommand: "python backend/app.py"
+    buildCommand: >
+      pip install -r backend/requirements.txt flask gunicorn &&
+      cd frontend &&
+      npm install --registry=https://registry.npmjs.org &&
+      npm run build
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --chdir backend app:app"
     envVars:
-      - key: PORT
-        value: 10000
+      - key: CP_BASE
+        value: https://localhost:5055/v1/api

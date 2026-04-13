@@ -1,0 +1,31 @@
+services:
+
+  # ── IBKR Client Portal Gateway ───────────────────────────────────────────────
+  cpgw:
+    build:
+      context: ./clientportal
+      dockerfile: Dockerfile
+    ports:
+      - "5055:5055"   # expose for browser login at https://localhost:5055
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sk https://localhost:5055/v1/api/iserver/auth/status || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ── Flask backend + React frontend ───────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - CP_BASE=https://host.docker.internal:5055/v1/api  # via host so CP Gateway sees 127.0.0.1
+      - FLASK_ENV=production
+    depends_on:
+      cpgw:
+        condition: service_healthy
+    restart: unless-stopped
